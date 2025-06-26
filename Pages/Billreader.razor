@@ -9,17 +9,21 @@
 @using UglyToad.PdfPig
 @using UglyToad.PdfPig.Content
 
+<PageTitle>Bill Reader</PageTitle>
+
 <style>
     .scroll-target {
         scroll-margin-top: 80px; /* Same height as your fixed header */
     }
 </style>
-<h3>Invoice PDF Field Extractor</h3>
-<p>Select your invoice PDF and extract key fields.</p>
+<h3>Upload Utility Bills (PDF, up to 10 files)</h3>
+<p>
+    We’ll validate and extract energy usage data from each file to prepare them for submission.
+</p>
 
 <div class="row">
     <div class="col">
-        <div class="position-relative p-5 border border-1 border-dark @HoverClass" style="height: 150px;"
+        <div class="position-relative p-5 border border-1 @HoverClass" style="height: 150px;"
              @ondragenter="OnDragEnter"
              @ondragover="OnDragEnter"
              @ondragleave="OnDragLeave"
