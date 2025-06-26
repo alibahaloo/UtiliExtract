@@ -1,0 +1,5 @@
+﻿UtiliExtract  
+Copyright 2025 Ali Bahaloo
+
+This product includes software developed by Ali Bahaloo.  
+https://github.com/alibahaloo/UtiliExtract
