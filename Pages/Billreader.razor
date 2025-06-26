@@ -1,0 +1,547 @@
+﻿@page "/billreader"
+@using System.Text.Json;
+@using System.Text.Json.Serialization;
+@using System.IO
+@using System.Text
+@using System.Text.RegularExpressions
+@using Microsoft.AspNetCore.Components.Forms
+@using System.ComponentModel.DataAnnotations
+@using UglyToad.PdfPig
+@using UglyToad.PdfPig.Content
+
+<style>
+    .scroll-target {
+        scroll-margin-top: 80px; /* Same height as your fixed header */
+    }
+</style>
+<h3>Invoice PDF Field Extractor</h3>
+<p>Select your invoice PDF and extract key fields.</p>
+
+<div class="row">
+    <div class="col">
+        <div class="position-relative p-5 border border-1 border-dark @HoverClass" style="height: 150px;"
+             @ondragenter="OnDragEnter"
+             @ondragover="OnDragEnter"
+             @ondragleave="OnDragLeave"
+             @ondrop="OnDrop">
+
+            <!-- Invisible InputFile still covers the full area -->
+            <InputFile OnChange="HandleFileSelected"
+                       @key="fileInputKey"
+                       multiple
+                       accept=".pdf"
+                       disabled="@IsProcessing"
+                       hidden="@IsProcessing"
+                       class="position-absolute top-0 start-0 w-100 h-100 opacity-0"
+                       style="cursor: pointer;" />
+
+            <div class="d-flex justify-content-center align-items-center h-100">
+                @if (IsProcessing)
+                {
+                    <span class="fw-bold d-block">@ProcessingMessage</span>
+                    <div class="m-2 d-flex justify-content-center">
+                        <div class="spinner-border spinner-border-lg" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <span class="bi bi-filetype-pdf fs-1"></span>
+                    <span class="fw-bold ms-1">Drop PDF(s) here or click to select</span>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@if(InvalidFiles.Any() || ValidBills.Any()) {
+<div class="row mt-1">
+    <div class="col">
+        <span class="fw-bold">
+            Uploaded Bills:
+        </span>
+        <ul class="list-group">
+            @foreach (var file in InvalidFiles)
+            {
+                <li class="bi bi-x list-group-item list-group-item-danger">
+                    @file
+                </li>
+            }
+            @foreach (var file in ValidBills)
+            {
+                <li class="bi bi-check list-group-item list-group-item-success">
+                    @file.FileName
+                </li>
+            }
+        </ul>
+    </div>
+</div>
+}
+
+@if (IsProcessing || ProcessingDone)
+{
+    <div class="progress mt-2 mb-2" role="progressbar" aria-label="Processing files"
+         aria-valuemin="0" aria-valuemax="100" aria-valuenow="@ProgressPercent">
+        <div class="progress-bar"
+             style=@($"width: {ProgressPercent}%; transition: none;")>
+            @ProgressPercent%
+        </div>
+    </div>
+}
+
+@if (!IsProcessing && ProcessingDone && string.IsNullOrEmpty(ErrorInProcessing))
+{
+    if (ValidBills.Any())
+    {
+        int index = 0;
+        <EditForm EditContext="editContext"
+                  OnValidSubmit="HandleValidSubmit">
+            <div class="row mb-2">
+                <div class="col">
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </div>
+            </div>
+            @if (editContext.GetValidationMessages().Any())
+            {
+                <div class="alert alert-danger" role="alert">
+                     <ValidationSummaryWithLinks CssClass="mb-0 pb-0" />
+                </div>
+            }
+            @foreach (var bill in ValidBills)
+            {
+                <div class="accordion" id="validBillsAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_@index" aria-expanded="true" aria-controls="collapse_@index">
+                                <span class="fw-light">@bill.FileName</span> <span class="ms-2 fw-bold">(Bill Provider: @bill.BillProvider)</span>
+                            </button>
+                        </h2>
+                    </div>
+                    <div id="collapse_@index" class="accordion-collapse collapse show" data-bs-parent="#validBillsAccordion">
+                        <div class="accordion-body border border-1">
+                            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                                @foreach (var item in bill.BillData)
+                                {
+                                    <div class="col scroll-target" id="@item.AccountNumber">
+                                        <div class="card h-100">
+                                            <div class="card-header">
+                                                <button type="button" title="Remove" class="btn-close text-warning" aria-label="Remove" @onclick="() => RemoveBillData(bill, item)"></button>
+                                                <span class="fs-5">@item.Name</span>
+                                            </div>
+                                            <div class="card-body">
+                                                <p class="card-text small">
+                                                    <div class="mb-1 row">
+                                                        <label class="col-4 col-form-label fw-bold">Account Number:</label>
+                                                        <div class="col-8">
+                                                            <InputText @bind-Value="item.AccountNumber" class="form-control" />
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="mb-1 row">
+                                                        <label class="col-4 col-form-label fw-bold">Billing Date:</label>
+                                                        <div class="col-8">
+                                                            <InputDate @bind-Value="item.BillingDate" class="form-control" />
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="mb-1 row">
+                                                        <label class="col-4 col-form-label fw-bold">Duration Start:</label>
+                                                        <div class="col-8">
+                                                            <InputDate @bind-Value="item.DurationStart" class="form-control" />
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="mb-1 row">
+                                                        <label class="col-4 col-form-label fw-bold">Duration End:</label>
+                                                        <div class="col-8">
+                                                            <InputDate @bind-Value="item.DurationEnd" class="form-control" />
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="mb-1 row">
+                                                        <label class="col-4 col-form-label fw-bold">Consumption:</label>
+                                                        <div class="col-8">
+                                                            <InputNumber @bind-Value="item.Usage" class="form-control" />
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="mb-1 row">
+                                                        <label class="col-4 col-form-label fw-bold">Amount Due:</label>
+                                                        <div class="col-8">
+                                                            <InputNumber @bind-Value="item.AmountDue" class="form-control" />
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="mb-1 row">
+                                                        <label class="col-4 col-form-label fw-bold">Is Metered</label>
+                                                        <div class="col-8">
+                                                            <span class="form-control-plaintext">@item.IsMetered</span>
+                                                        </div>
+                                                    </div>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+            </div>
+            index++;
+            }
+        </EditForm>
+    }
+}
+
+@if (!string.IsNullOrEmpty(ErrorInProcessing))
+{
+    <div class="alert alert-danger">@ErrorInProcessing</div>
+}
+
+@code {
+    private string fileInputKey = Guid.NewGuid().ToString();
+    private ValidationMessageStore messageStore = default!;
+    private EditContext editContext = default!;
+
+    private List<Bill> ValidBills { get; set; } = [];
+    private List<string> InvalidFiles { get; set; } = [];
+
+    private bool IsProcessing { get; set; } = false;
+    private bool ProcessingDone { get; set; } = false;
+    private string ErrorInProcessing { get; set; } = string.Empty;
+    private string ProcessingMessage { get; set; } = string.Empty;
+
+    // 0–100 percentage of files processed
+    private int ProgressPercent { get; set; } = 0;
+
+    private string HoverClass = string.Empty;
+
+    void OnDragEnter(DragEventArgs _)
+    => HoverClass = "bg-secondary";
+
+    void OnDragLeave(DragEventArgs _)
+      => HoverClass = string.Empty;
+
+    // this runs whenever you actually drop the file
+    void OnDrop(DragEventArgs _)
+      => HoverClass = string.Empty;
+
+
+    protected override void OnInitialized()
+    {
+        // 1) Set up your context & message store
+        editContext = new EditContext(ValidBills);
+        messageStore = new ValidationMessageStore(editContext);
+
+        // 2) When the user tries to submit, re-validate everything
+        editContext.OnValidationRequested += (sender, args) =>
+        {
+            ValidateModel();
+        };
+
+        // 3) When a single field changes, clear its old errors & re-validate just it
+        editContext.OnFieldChanged += (sender, args) =>
+        {
+            // clear old messages for this field
+            messageStore.Clear(args.FieldIdentifier);
+            // re-validate this one field
+            ValidateField(args.FieldIdentifier);
+            // re-render
+            editContext.NotifyValidationStateChanged();
+        };
+    }
+
+    private void ValidateModel()
+    {
+        // clear all old errors
+        messageStore.Clear();
+
+        bool allValid = true;
+        foreach (var bill in ValidBills)
+        {
+            foreach (var item in bill.BillData)
+            {
+                var context = new ValidationContext(item);
+                var results = new List<ValidationResult>();
+
+                // true => validate all [ValidationAttribute]s
+                if (!Validator.TryValidateObject(item, context, results, true))
+                {
+                    allValid = false;
+                    // stash each error on the correct field
+                    foreach (var vr in results)
+                        foreach (var member in vr.MemberNames)
+                            messageStore.Add(
+                              new FieldIdentifier(item, member),
+                              vr.ErrorMessage!);
+                }
+            }
+        }
+
+        // push changes to the UI
+        editContext.NotifyValidationStateChanged();
+    }
+
+    private void ValidateField(FieldIdentifier fieldIdentifier)
+    {
+        // grab the value of that one property
+        var model = (BillData)fieldIdentifier.Model;
+        var propInfo = model.GetType().GetProperty(fieldIdentifier.FieldName);
+        if (propInfo == null) return;
+
+        var value = propInfo.GetValue(model);
+        var context = new ValidationContext(model)
+        {
+            MemberName = fieldIdentifier.FieldName
+        };
+        var results = new List<ValidationResult>();
+
+        // only validates that one property
+        Validator.TryValidateProperty(value, context, results);
+
+        // re-add any errors for that field
+        foreach (var vr in results)
+            messageStore.Add(fieldIdentifier, vr.ErrorMessage!);
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        // 1) flatten all BillData items into a single list of DTOs
+        var dtoList = ValidBills
+        .SelectMany(bill => bill.BillData.Select(item => new { bill, item }))
+        .Select(x => new BillDto
+            {
+                AccountNumber = x.item.AccountNumber,
+                BillingDate = x.item.BillingDate,
+                DurationStart = x.item.DurationStart,
+                DurationEnd = x.item.DurationEnd,
+                Usage = x.item.Usage,
+                BillProvider = x.bill.BillProvider,
+                UsageType = Enum.GetName(typeof(UsageType), x.item.UsageType),
+                UsageUnit = Enum.GetName(typeof(UsageUnit), x.item.UsageUnit),
+            })
+            .ToList();
+
+        var options = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = true
+        };
+
+        string jsonPayload = JsonSerializer.Serialize(dtoList, options);
+
+        Console.WriteLine(jsonPayload);
+    }
+
+    private async Task HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        HoverClass = string.Empty;
+        InvalidFiles.Clear();
+        ValidBills.Clear();
+        ErrorInProcessing = string.Empty;
+
+        ProcessingDone = false;
+        IsProcessing = true;
+
+        ProcessingMessage = "Reading file(s) ...";
+        StateHasChanged();
+        await Task.Delay(1);
+
+        const long maxSize = 10 * 1024 * 1024; // 10 MB
+        foreach (var file in e.GetMultipleFiles())
+        {
+            if (!file.Name.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+            {
+                InvalidFiles.Add($"{file.Name}: Not a valid PDF file");
+                continue;
+            }
+
+            // 1. Read immediately into a MemoryStream
+            using var browserStream = file.OpenReadStream(maxSize);
+            //using var ms = new MemoryStream();
+            using var ms = new MemoryStream((int)file.Size);
+            await browserStream.CopyToAsync(ms);
+
+            // 2. Store the raw bytes and filename
+            ValidBills.Add(new Bill
+            {
+                FileName = file.Name,
+                Content = ms.ToArray()
+            });
+        }
+
+        fileInputKey = Guid.NewGuid().ToString();
+
+        ProcessingMessage = "Processing bill(s) ...";
+        await ProcessBills();
+
+        IsProcessing = false;
+        ProcessingDone = true;
+        StateHasChanged();
+    }
+
+    private void RemoveBillData(Bill bill, BillData billData)
+    {
+        bill.BillData.Remove(billData);
+    }
+
+    private void Reset()
+    {
+        fileInputKey = Guid.NewGuid().ToString();
+        IsProcessing = false;
+        ProcessingDone = false;
+        ValidBills.Clear();
+        InvalidFiles.Clear();
+        ErrorInProcessing = string.Empty;
+
+    }
+
+    private async Task ProcessBills()
+    {
+        ProgressPercent = 0;
+        // Initial render
+        StateHasChanged();
+        await Task.Delay(1);
+
+        int totalBills = ValidBills.Count;
+        if (totalBills == 0)
+        {
+            ProgressPercent = 100;
+            StateHasChanged();
+            return;
+        }
+
+        // How much each “outer” bill contributes to 100%
+        double outerWeight = 100.0 / totalBills;
+
+        for (int i = 0; i < totalBills; i++)
+        {
+            var bill = ValidBills[i];
+
+            try
+            {
+                // --- load & detect provider ---
+                using var memStream = new MemoryStream(bill.Content);
+                using var document = PdfDocument.Open(memStream);
+                var fullText = ExtractTextWithNewlines(document);
+                bill.BillProvider = BillProviderDetector.DetectBillProvider(fullText);
+
+                // --- branch by provider ---
+                switch (bill.BillProvider)
+                {
+                    case BillProvider.FortisBCElec:
+                        bill.BillData = new List<BillData>
+                    {
+                        FortisBCElecBillReader.GetInvoiceData(fullText)
+                    };
+                        // one step completes the whole bill
+                        ProgressPercent = (int)Math.Round((i + 1) * outerWeight);
+                        StateHasChanged();
+                        await Task.Delay(1);
+                        break;
+
+                    case BillProvider.DirectEnergy:
+                        bill.BillData = new List<BillData>
+                    {
+                        DirectEnergyBillReader.GetInvoiceData(fullText)
+                    };
+                        ProgressPercent = (int)Math.Round((i + 1) * outerWeight);
+                        StateHasChanged();
+                        await Task.Delay(1);
+                        break;
+
+                    case BillProvider.BCHydro:
+                        var hydroBill = new BcHydroBillReader(fullText);
+                        var sections = hydroBill.GetSections();
+                        if (sections == null) break;
+                        bill.BillData = new List<BillData>();
+
+                        int sectionCount = sections.Count;
+                        for (int j = 0; j < sectionCount; j++)
+                        {
+                            var secBillData = hydroBill.GetBillData(sections[j]);
+                            if (secBillData != null)
+                                bill.BillData.Add(secBillData);
+
+                            // update after each section:
+                            // (i + (j+1)/sectionCount) * outerWeight gives fractional progress within this bill
+                            ProgressPercent = (int)Math.Round((i + (j + 1) / (double)sectionCount) * outerWeight);
+                            StateHasChanged();
+                            await Task.Delay(1);
+                        }
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorInProcessing = $"Error processing {bill.FileName}: {ex.Message}";
+                // still bump the bar so it never stalls completely
+                ProgressPercent = (int)Math.Round((i + 1) * outerWeight);
+                StateHasChanged();
+                await Task.Delay(1);
+            }
+        }
+
+        // ensure we finish at 100%
+        ProgressPercent = 100;
+        StateHasChanged();
+    }
+
+
+    private static string ExtractAllText(PdfDocument document)
+    {
+        var sb = new StringBuilder();
+        foreach (var page in document.GetPages())
+        {
+            sb.AppendLine(page.Text);
+        }
+        return sb.ToString();
+    }
+
+    private static string ExtractTextWithNewlines(PdfDocument document)
+    {
+        var sb = new StringBuilder();
+        const double lineTolerance = 2.0; // adjust based on your PDF’s DPI
+
+        foreach (var page in document.GetPages())
+        {
+            // Step A: get all words
+            var words = page.GetWords();
+
+            // Step B: cluster words into lines
+            var lines = new List<List<Word>>();
+            foreach (var word in words)
+            {
+                // try to find an existing line cluster whose Y is within tolerance
+                var placed = false;
+                var y = word.BoundingBox.Bottom;
+                foreach (var line in lines)
+                {
+                    if (Math.Abs(line[0].BoundingBox.Bottom - y) < lineTolerance)
+                    {
+                        line.Add(word);
+                        placed = true;
+                        break;
+                    }
+                }
+                if (!placed)
+                {
+                    lines.Add(new List<Word> { word });
+                }
+            }
+
+            // Step C: sort each line by X, join and append
+            foreach (var line in lines.OrderByDescending(l => l[0].BoundingBox.Bottom))
+            {
+                var textLine = string.Join(" ",
+                    line.OrderBy(w => w.BoundingBox.Left)
+                        .Select(w => w.Text));
+                sb.AppendLine(textLine);
+            }
+        }
+
+        return sb.ToString();
+    }
+}
