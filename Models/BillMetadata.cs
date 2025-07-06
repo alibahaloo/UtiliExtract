@@ -4,20 +4,23 @@
     {
         kWh,
         GJ,
-        m3
+        m3,
+        LBS
     }
     public enum UsageType
     {
         Electricity,
         Gas,
-        Water
+        Water,
+        Steam
     }
     public enum BillProvider
     {
         BCHydro,
         FortisBCElec,
         DirectEnergy,
-        Enmax
+        Enmax,
+        CreativeEnergy
     }
     public static class BillMetadata
     {
@@ -26,14 +29,16 @@
             { BillProvider.Enmax, new List<UsageType> { UsageType.Electricity, UsageType.Gas, UsageType.Water } },
             { BillProvider.BCHydro, new List<UsageType> { UsageType.Electricity } },
             { BillProvider.FortisBCElec, new List<UsageType> { UsageType.Electricity } },
-            { BillProvider.DirectEnergy, new List<UsageType> { UsageType.Gas } }
+            { BillProvider.DirectEnergy, new List<UsageType> { UsageType.Gas } },
+            { BillProvider.CreativeEnergy, new List<UsageType>() { UsageType.Steam } },
         };
 
         public static readonly Dictionary<UsageType, UsageUnit> UsageTypeToUnitMap = new()
         {
             { UsageType.Electricity, UsageUnit.kWh },
             { UsageType.Gas, UsageUnit.GJ },
-            { UsageType.Water, UsageUnit.m3 }
+            { UsageType.Water, UsageUnit.m3 },
+            { UsageType.Steam, UsageUnit.LBS },
         };
 
         public static readonly Dictionary<BillProvider, List<string>> BillTypeKeywords = new()
@@ -42,6 +47,7 @@
             { BillProvider.BCHydro, new List<string> { "bchydro.com" } },
             { BillProvider.Enmax, new List<string> { "enmax.com" } },
             { BillProvider.DirectEnergy, new List<string> { "directenergy.com" } },
+            { BillProvider.CreativeEnergy, new List<string> { "Creativeenergycanada.com" } },
             // Add more mappings here as needed
         };
 

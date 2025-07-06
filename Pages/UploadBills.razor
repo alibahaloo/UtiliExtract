@@ -140,6 +140,9 @@
                                         case UsageType.Electricity:
                                             typeIconClass = "bi bi-plug";
                                             break;
+                                        case UsageType.Steam:
+                                            typeIconClass = "bi bi-wind";
+                                            break;
                                         default:
                                             typeIconClass = string.Empty;
                                             break;
@@ -456,6 +459,15 @@
                 // --- branch by provider ---
                 switch (bill.BillProvider)
                 {
+                    case BillProvider.CreativeEnergy:
+                        bill.BillData = new List<BillData>
+                        {
+                            CreativeEnergyBillReader.GetInvoiceData(fullText)
+                        };
+                        ProgressPercent = (int)Math.Round((i + 1) * outerWeight);
+                        StateHasChanged();
+                        await Task.Delay(1);
+                        break;
                     case BillProvider.Enmax:
                         var enmaxBill = new EnmaxBillReader(fullText);
                         var enmaxSections = enmaxBill.GetSections();
