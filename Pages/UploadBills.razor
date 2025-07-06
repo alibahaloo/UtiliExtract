@@ -435,11 +435,32 @@
                 // --- branch by provider ---
                 switch (bill.BillProvider)
                 {
+                    case BillProvider.Enmax:
+                        var enmaxBill = new EnmaxBillReader(fullText);
+                        var enmaxSections = enmaxBill.GetSections();
+                        if (enmaxSections == null) break;
+
+                        bill.BillData = new List<BillData>();
+
+                        int enmaxSectionCount = enmaxSections.Count;
+                        for (int j = 0; j < enmaxSectionCount; j++)
+                        {
+                            var secBillData = enmaxBill.GetBillData(enmaxSections[j]);
+                            if (secBillData != null)
+                                bill.BillData.Add(secBillData);
+
+                            ProgressPercent = (int)Math.Round(
+                                (i + (j + 1) / (double)enmaxSectionCount) * outerWeight
+                            );
+                            StateHasChanged();
+                            await Task.Delay(1);
+                        }
+                        break;
                     case BillProvider.FortisBCElec:
                         bill.BillData = new List<BillData>
-                    {
-                        FortisBCElecBillReader.GetInvoiceData(fullText)
-                    };
+                        {
+                            FortisBCElecBillReader.GetInvoiceData(fullText)
+                        };
                         // one step completes the whole bill
                         ProgressPercent = (int)Math.Round((i + 1) * outerWeight);
                         StateHasChanged();
@@ -448,9 +469,9 @@
 
                     case BillProvider.DirectEnergy:
                         bill.BillData = new List<BillData>
-                    {
-                        DirectEnergyBillReader.GetInvoiceData(fullText)
-                    };
+                        {
+                            DirectEnergyBillReader.GetInvoiceData(fullText)
+                        };
                         ProgressPercent = (int)Math.Round((i + 1) * outerWeight);
                         StateHasChanged();
                         await Task.Delay(1);

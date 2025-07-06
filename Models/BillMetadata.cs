@@ -38,9 +38,9 @@
 
         public static readonly Dictionary<BillProvider, List<string>> BillTypeKeywords = new()
         {
-            { BillProvider.FortisBCElec, new List<string> { "Electricity", "fortisbc.com" } },
-            { BillProvider.BCHydro, new List<string> { "bchydro.com", "Electricity" } },
-            { BillProvider.Enmax, new List<string> { "enmax.com", "natural gas", "gas consumption" } },
+            { BillProvider.FortisBCElec, new List<string> { "fortisbc.com" } },
+            { BillProvider.BCHydro, new List<string> { "bchydro.com" } },
+            { BillProvider.Enmax, new List<string> { "enmax.com" } },
             { BillProvider.DirectEnergy, new List<string> { "directenergy.com" } },
             // Add more mappings here as needed
         };
