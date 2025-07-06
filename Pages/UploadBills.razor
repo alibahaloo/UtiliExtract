@@ -119,7 +119,7 @@
                     <div class="accordion-item">
                         <h2 class="accordion-header">
                             <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_@index" aria-expanded="true" aria-controls="collapse_@index">
-                                <span class="fw-light">@bill.FileName</span> <span class="ms-2 fw-bold">(Bill Provider: @bill.BillProvider)</span>
+                                <span class="fw-light bi bi-filetype-pdf">File: @bill.FileName</span> <span class="ms-2 p-1 fw-bold border border-1 text-primary bg-light">Provider: @bill.BillProvider</span> <span class="ms-2 p-1 border border-1 text-success bg-light">Total bills: @bill.BillData.Count()</span>
                             </button>
                         </h2>
                     </div>
@@ -128,12 +128,33 @@
                             <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
                                 @foreach (var item in bill.BillData)
                                 {
+                                    string typeIconClass;
+                                    @switch (item.UsageType)
+                                    {
+                                        case UsageType.Gas:
+                                            typeIconClass = "bi bi-fuel-pump";
+                                            break;
+                                        case UsageType.Water:
+                                            typeIconClass = "bi bi-droplet";
+                                            break;
+                                        case UsageType.Electricity:
+                                            typeIconClass = "bi bi-plug";
+                                            break;
+                                        default:
+                                            typeIconClass = string.Empty;
+                                            break;
+                                    }
+
                                     <div class="col scroll-target" id="@item.AccountNumber">
                                         <div class="card h-100">
-                                            <div class="card-header">
-                                                <button type="button" title="Remove" class="btn-close text-warning" aria-label="Remove" @onclick="() => RemoveBillData(bill, item)"></button>
-                                                <span class="fs-5">@item.Name</span>
+                                            <div class="card-header d-flex align-items-center justify-content-between">
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <button type="button" title="Remove" class="btn-close text-warning" aria-label="Remove" @onclick="() => RemoveBillData(bill, item)"></button>
+                                                    <span class="fs-5">@item.Name</span>
+                                                </div>
+                                                <span class="@typeIconClass" title="@item.UsageType"></span>
                                             </div>
+
                                             <div class="card-body">
                                                 <p class="card-text small">
                                                     <div class="mb-1 row">
@@ -165,7 +186,7 @@
                                                     </div>
 
                                                     <div class="mb-1 row">
-                                                        <label class="col-4 col-form-label fw-bold">Consumption:</label>
+                                                        <label class="col-4 col-form-label fw-bold">Consumption (@item.UsageUnit):</label>
                                                         <div class="col-8">
                                                             <InputNumber @bind-Value="item.Usage" class="form-control" />
                                                         </div>
