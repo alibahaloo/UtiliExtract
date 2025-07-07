@@ -22,6 +22,7 @@
         Enmax,
         CreativeEnergy,
         CityOfVancouver,
+        CityOfWilliamsLake
     }
     public static class BillMetadata
     {
@@ -33,6 +34,7 @@
             { BillProvider.DirectEnergy, new List<UsageType> { UsageType.Gas } },
             { BillProvider.CreativeEnergy, new List<UsageType>() { UsageType.Steam } },
             { BillProvider.CityOfVancouver, new List<UsageType>() {UsageType.Water } },
+            { BillProvider.CityOfWilliamsLake, new List<UsageType>() {UsageType.Water } },
         };
 
         public static readonly Dictionary<UsageType, UsageUnit> UsageTypeToUnitMap = new()
@@ -51,6 +53,7 @@
             { BillProvider.DirectEnergy, new List<string> { "directenergy.com" } },
             { BillProvider.CreativeEnergy, new List<string> { "Creativeenergycanada.com" } },
             { BillProvider.CityOfVancouver, new List<string> { "vancouver.ca/utilitybilling" } },
+            { BillProvider.CityOfWilliamsLake, new List<string> { "www.williamslake.ca" } },
             // Add more mappings here as needed
         };
 
