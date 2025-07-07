@@ -20,7 +20,8 @@
         FortisBCElec,
         DirectEnergy,
         Enmax,
-        CreativeEnergy
+        CreativeEnergy,
+        CityOfVancouver,
     }
     public static class BillMetadata
     {
@@ -31,6 +32,7 @@
             { BillProvider.FortisBCElec, new List<UsageType> { UsageType.Electricity } },
             { BillProvider.DirectEnergy, new List<UsageType> { UsageType.Gas } },
             { BillProvider.CreativeEnergy, new List<UsageType>() { UsageType.Steam } },
+            { BillProvider.CityOfVancouver, new List<UsageType>() {UsageType.Water } },
         };
 
         public static readonly Dictionary<UsageType, UsageUnit> UsageTypeToUnitMap = new()
@@ -48,6 +50,7 @@
             { BillProvider.Enmax, new List<string> { "enmax.com" } },
             { BillProvider.DirectEnergy, new List<string> { "directenergy.com" } },
             { BillProvider.CreativeEnergy, new List<string> { "Creativeenergycanada.com" } },
+            { BillProvider.CityOfVancouver, new List<string> { "vancouver.ca/utilitybilling" } },
             // Add more mappings here as needed
         };
 

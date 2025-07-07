@@ -459,6 +459,15 @@
                 // --- branch by provider ---
                 switch (bill.BillProvider)
                 {
+                    case BillProvider.CityOfVancouver:
+                        bill.BillData = new List<BillData>
+                        {
+                            CityOfVancouverBillReader.GetInvoiceData(fullText)
+                        };
+                        ProgressPercent = (int)Math.Round((i + 1) * outerWeight);
+                        StateHasChanged();
+                        await Task.Delay(1);
+                        break;
                     case BillProvider.CreativeEnergy:
                         bill.BillData = new List<BillData>
                         {
