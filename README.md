@@ -72,6 +72,16 @@ Create a new helper class in `UtiliExtract.Helpers` using the existing ones (`Bc
 
 ---
 
+## Credits
+
+This project makes use of the following open source packages:
+
+[PdfPig](https://github.com/UglyToad/PdfPig) - PDF text extraction library
+
+[Blazor.Bootstrap](https://github.com/vikramlearning/blazorbootstrap) - Bootstrap component library for Blazor
+
+---
+
 ## License
 
 This project, **UtiliExtract**, is licensed under the [Apache License 2.0](LICENSE.txt).
