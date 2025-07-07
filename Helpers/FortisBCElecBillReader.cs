@@ -6,15 +6,18 @@ namespace UtiliExtract.Helpers
     {
         public static BillData GetInvoiceData(string fullText)
         {
+            var usageType = UsageType.Electricity;
             var data = new BillData
             {
+                IsMetered = true,
+                UsageType = usageType,
+                UsageUnit = BillMetadata.GetUsageUnit(usageType),
                 AccountNumber = TryExtractAccountNumber(fullText),
                 Name = TryExtractName(fullText),
                 ServiceAddress = TryExtractServiceAddress(fullText),
                 BillingDate = TryExtractBillingDate(fullText),
                 AmountDue = TryExtractAmountDue(fullText),
                 Usage = TryExtractUsage(fullText),
-                //BillProvider = BillProvider.FortisBCElec
             };
             (data.DurationStart, data.DurationEnd) = TryExtractBillingPeriod(fullText);
 

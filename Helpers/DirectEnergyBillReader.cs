@@ -38,8 +38,12 @@ namespace UtiliExtract.Helpers
 
         public static BillData GetInvoiceData(string fullText)
         {
+            var usageType = UsageType.Gas;
             var data = new BillData
             {
+                IsMetered = true,
+                UsageType = usageType,
+                UsageUnit = BillMetadata.GetUsageUnit(usageType),
                 AccountNumber = ExtractAccountNumber(fullText),
                 Name = ExtractName(fullText),
                 BillingDate = ExtractBillingDate(fullText),

@@ -138,20 +138,20 @@ namespace UtiliExtract.Helpers
         /// </summary>
         public BillData? GetBillData(string section)
         {
+            UsageType usageType;
             var data = new BillData
             {
                 Name = this.Name,
                 AccountNumber = this.AccountNumber,
                 ServiceAddress = this.ServiceAddress,
-                BillingDate = this.BillingDate
+                BillingDate = this.BillingDate,
+                IsMetered = true
             };
 
             // ── ELECTRICITY SECTION ─────────────────────────────────────────────────
             if (section.StartsWith("ELECTRICITY"))
             {
-                data.UsageType = UsageType.Electricity;
-                data.UsageUnit = UsageUnit.kWh;
-                data.IsMetered = true;
+                usageType = UsageType.Electricity;
 
                 // 1) Usage (e.g. “2,680.000 kWh @”)
                 var um = UsagePattern.Match(section);
@@ -173,10 +173,8 @@ namespace UtiliExtract.Helpers
             // ── WATER TREATMENT AND SUPPLY SECTION ────────────────────────────────────
             else if (section.StartsWith("WATER TREATMENT AND SUPPLY"))
             {
-                data.UsageType = UsageType.Water;
-                data.UsageUnit = UsageUnit.m3;
-                data.IsMetered = true;
-
+                usageType = UsageType.Water;
+ 
                 // 1) Usage (e.g. “115.000 m3 @”)
                 var uw = WaterUsagePattern.Match(section);
                 if (uw.Success)
@@ -199,6 +197,9 @@ namespace UtiliExtract.Helpers
                 // Unknown section type
                 return null;
             }
+
+            data.UsageType = usageType;
+            data.UsageUnit = BillMetadata.GetUsageUnit(usageType);
 
             // ── DURATION (common to all sections) ────────────────────────────────────
             // Looks for “(Mar6toApr3)” and parses start/end

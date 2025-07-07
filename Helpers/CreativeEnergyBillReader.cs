@@ -46,13 +46,15 @@ namespace UtiliExtract.Helpers
 
         public static BillData GetInvoiceData(string fullText)
         {
+            var usageType = UsageType.Steam;
+
             var data = new BillData
             {
                 BillingDate = ExtractBillingDate(fullText),
                 AccountNumber = ExtractAccountNumber(fullText),
                 IsMetered = true,
-                UsageType = UsageType.Steam,
-                UsageUnit = UsageUnit.LBS,
+                UsageType = usageType,
+                UsageUnit = BillMetadata.GetUsageUnit(usageType),
                 AmountDue = ExtractDueAmount(fullText),
             };
 

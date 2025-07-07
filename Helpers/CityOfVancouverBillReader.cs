@@ -51,11 +51,12 @@ namespace UtiliExtract.Helpers
 
         public static BillData GetInvoiceData(string fullText)
         {
+            var usageType = UsageType.Water;
             var data = new BillData
             {
                 IsMetered = true,
-                UsageType = UsageType.Water,
-                UsageUnit = UsageUnit.m3,
+                UsageType = usageType,
+                UsageUnit = BillMetadata.GetUsageUnit(usageType),
                 AccountNumber = ExtractAccountNumber(fullText),
                 BillingDate = ExtractBillingDate(fullText),
                 Name = ExtractName(fullText),

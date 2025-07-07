@@ -128,25 +128,7 @@
                             <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
                                 @foreach (var item in bill.BillData)
                                 {
-                                    string typeIconClass;
-                                    @switch (item.UsageType)
-                                    {
-                                        case UsageType.Gas:
-                                            typeIconClass = "bi bi-fuel-pump";
-                                            break;
-                                        case UsageType.Water:
-                                            typeIconClass = "bi bi-droplet";
-                                            break;
-                                        case UsageType.Electricity:
-                                            typeIconClass = "bi bi-plug";
-                                            break;
-                                        case UsageType.Steam:
-                                            typeIconClass = "bi bi-wind";
-                                            break;
-                                        default:
-                                            typeIconClass = string.Empty;
-                                            break;
-                                    }
+                                    string typeIconClass = BillMetadata.GetIconClass(item.UsageType);
 
                                     <div class="col scroll-target" id="@item.AccountNumber">
                                         <div class="card h-100">

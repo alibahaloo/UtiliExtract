@@ -226,6 +226,7 @@ namespace UtiliExtract.Helpers
                 }
             }
 
+            var usageType = UsageType.Electricity;
             return new BillData
             {
                 AccountNumber = accountNumber,
@@ -236,7 +237,9 @@ namespace UtiliExtract.Helpers
                 DurationEnd = durationEnd,
                 Usage = usage,
                 AmountDue = amountDue,
-                IsMetered = isMetered
+                IsMetered = isMetered,
+                UsageType = usageType,
+                UsageUnit = BillMetadata.GetUsageUnit(usageType),
             };
         }
 
