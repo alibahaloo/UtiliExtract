@@ -11,8 +11,11 @@ namespace UtiliExtract.Helpers
 
         // Precompiled, culture-invariant patterns
         private static readonly Regex BillingDatePattern = new Regex(
-            @"Invoice Date:\s*([0-9]{1,2}-[A-Za-z]{3}-\d{2})",
-            RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant,
+            @"^Invoice Date:\s*(\d{1,2}-[A-Za-z]{3}-\d{2})",
+            RegexOptions.Multiline             // ← allow ^ to match start of any line
+            | RegexOptions.IgnoreCase
+            | RegexOptions.Compiled
+            | RegexOptions.CultureInvariant,
             RegexTimeout
         );
         private static readonly Regex BillingPeriodPattern = new Regex(
@@ -21,7 +24,7 @@ namespace UtiliExtract.Helpers
             RegexTimeout
         );
         private static readonly Regex AmountDuePattern = new Regex(
-            @"Amount Due Now:\s*\$\s*([\d,]+\.\d{2})",
+            @"Subtotal:\s*\$\s*([\d,]+\.\d{2})",
             RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant,
             RegexTimeout
         );
@@ -56,22 +59,21 @@ namespace UtiliExtract.Helpers
 
         private static DateTime? ExtractBillingDate(string text)
         {
-            var line = GetLineContaining(text, "Invoice Date:");
-            if (line != null)
+            // Because BillingDatePattern is compiled with RegexOptions.Multiline and ^ anchor,
+            // this will only match the line that starts with "Invoice Date: dd-MMM-yy"
+            var m = BillingDatePattern.Match(text);
+            if (m.Success && DateTime.TryParseExact(
+                    m.Groups[1].Value,
+                    "dd-MMM-yy",
+                    CultureInfo.InvariantCulture,
+                    DateTimeStyles.None,
+                    out var dt))
             {
-                var m = BillingDatePattern.Match(line);
-                if (m.Success && DateTime.TryParseExact(
-                        m.Groups[1].Value,
-                        "dd-MMM-yy",
-                        CultureInfo.InvariantCulture,
-                        DateTimeStyles.None,
-                        out var dt))
-                {
-                    return dt;
-                }
+                return dt;
             }
             return null;
         }
+
 
         private static (DateTime? start, DateTime? end) TryExtractBillingPeriod(string text)
         {
@@ -95,15 +97,24 @@ namespace UtiliExtract.Helpers
 
         private static decimal ExtractAmountDue(string text)
         {
-            var line = GetLineContaining(text, "Amount Due Now:");
+            // look for the line that actually contains "Subtotal:"
+            var line = GetLineContaining(text, "Subtotal:");
             if (line != null)
             {
                 var m = AmountDuePattern.Match(line);
-                if (m.Success && decimal.TryParse(m.Groups[1].Value.Replace(",", string.Empty), out var d))
+                if (m.Success
+                    && decimal.TryParse(
+                           m.Groups[1].Value.Replace(",", string.Empty),
+                           NumberStyles.AllowDecimalPoint,
+                           CultureInfo.InvariantCulture,
+                           out var d))
+                {
                     return d;
+                }
             }
             return 0m;
         }
+
 
         private static string? ExtractName(string text)
         {

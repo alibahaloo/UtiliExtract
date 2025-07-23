@@ -6,8 +6,10 @@
 @using System.Text.RegularExpressions
 @using Microsoft.AspNetCore.Components.Forms
 @using System.ComponentModel.DataAnnotations
+@using System.Globalization
 @using UglyToad.PdfPig
 @using UglyToad.PdfPig.Content
+@inject IJSRuntime JS
 
 <PageTitle>Bill Reader</PageTitle>
 
@@ -343,6 +345,52 @@
         string jsonPayload = JsonSerializer.Serialize(dtoList, options);
 
         Console.WriteLine(jsonPayload);
+
+        // 3) Kick off the CSV export
+        await ExportCsvFromJson(jsonPayload, options);
+    }
+
+    private static string FormatDate(DateTime? dt)
+    {
+        return dt.HasValue
+            ? dt.Value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)
+            : string.Empty;
+    }
+
+    private static string EscapeCsv(string? field)
+    {
+        var s = field ?? string.Empty;
+        var escaped = s.Replace("\"", "\"\"");
+        return $"\"{escaped}\"";
+    }
+
+    private async Task ExportCsvFromJson(string json, JsonSerializerOptions options)
+    {
+        var records = JsonSerializer.Deserialize<List<BillDto>>(json, options);
+        if (records == null || records.Count == 0)
+            return;
+
+        var sb = new StringBuilder();
+        sb.AppendLine("accountNumber,billingDate,durationStart,durationEnd,usage,billProvider,usageType,usageUnit");
+
+        foreach (var r in records)
+        {
+            var row = new[]
+            {
+                EscapeCsv(r.AccountNumber),
+                FormatDate(r.BillingDate),
+                FormatDate(r.DurationStart),
+                FormatDate(r.DurationEnd),
+                EscapeCsv(r.BillProvider.ToString()),
+                EscapeCsv(r.UsageType),
+                EscapeCsv(r.UsageUnit)
+            };
+            sb.AppendLine(string.Join(",", row));
+        }
+
+        var csvBytes = Encoding.UTF8.GetBytes(sb.ToString());
+        using var streamRef = new DotNetStreamReference(new MemoryStream(csvBytes));
+        await JS.InvokeVoidAsync("downloadFileFromStream", "bills.csv", streamRef);
     }
 
     private async Task HandleFileSelected(InputFileChangeEventArgs e)
