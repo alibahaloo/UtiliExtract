@@ -175,14 +175,14 @@
                                                     <div class="mb-1 row">
                                                         <label class="col-4 col-form-label fw-bold">Consumption (@item.UsageUnit):</label>
                                                         <div class="col-8">
-                                                            <InputNumber @bind-Value="item.Usage" class="form-control" />
+                                                            <InputNumber @bind-Value="item.Consumption" class="form-control" />
                                                         </div>
                                                     </div>
 
                                                     <div class="mb-1 row">
-                                                        <label class="col-4 col-form-label fw-bold">Amount Due:</label>
+                                                        <label class="col-4 col-form-label fw-bold">Cost (Total - GST):</label>
                                                         <div class="col-8">
-                                                            <InputNumber @bind-Value="item.AmountDue" class="form-control" />
+                                                            <InputNumber @bind-Value="item.Cost" class="form-control" />
                                                         </div>
                                                     </div>
 
@@ -329,7 +329,7 @@
                 BillingDate = x.item.BillingDate,
                 DurationStart = x.item.DurationStart,
                 DurationEnd = x.item.DurationEnd,
-                Usage = x.item.Usage,
+                Usage = x.item.Consumption,
                 BillProvider = x.bill.BillProvider,
                 UsageType = Enum.GetName(typeof(UsageType), x.item.UsageType),
                 UsageUnit = Enum.GetName(typeof(UsageUnit), x.item.UsageUnit),

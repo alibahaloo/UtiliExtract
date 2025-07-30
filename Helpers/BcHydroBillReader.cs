@@ -47,6 +47,13 @@ namespace UtiliExtract.Helpers
             RegexTimeout
         );
 
+        private static readonly Regex GstAmountPattern = new Regex(
+            @"\$\s*([\d,]+\.\d{2})\*",                                       // capture the number before the trailing '*'
+            RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant,
+            RegexTimeout
+        );
+
+
         static BcHydroBillReader()
         {
             string[] rateKinds = new[]
@@ -212,8 +219,8 @@ namespace UtiliExtract.Helpers
                 }
             }
 
-            // ── AMOUNT DUE ──────────────────────────────────────
-            decimal amountDue = 0;
+            // ── CHARGES ──────────────────────────────────────
+            decimal charges = 0;
             var chargesLine = GetLineContaining(sec, "CURRENT CHARGES");
             if (chargesLine != null)
             {
@@ -222,9 +229,12 @@ namespace UtiliExtract.Helpers
                     decimal.TryParse(cm.Groups[1].Value.Replace("$", "").Replace(",", ""),
                                      out var ad))
                 {
-                    amountDue = ad;
+                    charges = ad;
                 }
             }
+
+            var gstAmount = ExtractGstAmount(sec);
+            charges -= gstAmount;
 
             var usageType = UsageType.Electricity;
             return new BillData
@@ -235,8 +245,8 @@ namespace UtiliExtract.Helpers
                 BillingDate = BillingDate,
                 DurationStart = durationStart,
                 DurationEnd = durationEnd,
-                Usage = usage,
-                AmountDue = amountDue,
+                Consumption = usage,
+                Cost = charges,
                 IsMetered = isMetered,
                 UsageType = usageType,
                 UsageUnit = BillMetadata.GetUsageUnit(usageType),
@@ -307,6 +317,35 @@ namespace UtiliExtract.Helpers
             if (match.Success && DateTime.TryParse(match.Groups[1].Value.Trim(), out var dt))
                 return dt;
             return null;
+        }
+
+        private static decimal ExtractGstAmount(string section)
+        {
+            var anchors = new[] {
+                "TAXES ON ELECTRICITY CHARGES",
+                "TAXES ON UNMETERED CHARGES"
+            };
+            var lines = section.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+
+            for (int i = 0; i < lines.Length; i++)
+            {
+                // if this line contains *any* of our anchors, grab the next line
+                if (anchors.Any(a =>
+                        lines[i].IndexOf(a, StringComparison.OrdinalIgnoreCase) >= 0
+                    )
+                    && i + 1 < lines.Length)
+                {
+                    var gstLine = lines[i + 1];
+                    var m = GstAmountPattern.Match(gstLine);
+                    if (m.Success &&
+                        decimal.TryParse(m.Groups[1].Value.Replace(",", ""), out var tax))
+                    {
+                        return tax;
+                    }
+                }
+            }
+
+            return 0m;
         }
     }
 }

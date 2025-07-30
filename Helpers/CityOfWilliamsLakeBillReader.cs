@@ -51,8 +51,8 @@ namespace UtiliExtract.Helpers
                 ServiceAddress = ExtractServiceAddress(fullText),
                 AccountNumber = ExtractAccountNumber(fullText),
                 BillingDate = ExtractBillingDate(fullText),
-                Usage = ExtractConsumption(fullText),
-                AmountDue = ExtractAmountDue(fullText)
+                Consumption = ExtractConsumption(fullText),
+                Cost = ExtractAmountDue(fullText)
             };
 
             (data.DurationStart, data.DurationEnd) = ExtractDuration(fullText);

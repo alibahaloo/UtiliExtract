@@ -16,8 +16,8 @@ namespace UtiliExtract.Helpers
                 Name = TryExtractName(fullText),
                 ServiceAddress = TryExtractServiceAddress(fullText),
                 BillingDate = TryExtractBillingDate(fullText),
-                AmountDue = TryExtractAmountDue(fullText),
-                Usage = TryExtractUsage(fullText),
+                Cost = TryExtractAmountDue(fullText),
+                Consumption = TryExtractUsage(fullText),
             };
             (data.DurationStart, data.DurationEnd) = TryExtractBillingPeriod(fullText);
 

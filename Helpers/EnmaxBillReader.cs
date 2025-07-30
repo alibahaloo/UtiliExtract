@@ -159,7 +159,7 @@ namespace UtiliExtract.Helpers
                 {
                     var raw = um.Groups[1].Value.Replace(",", "");
                     if (double.TryParse(raw, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var usage))
-                        data.Usage = usage;
+                        data.Consumption = usage;
                 }
 
                 // 2) AmountDue (Summary $410.95)
@@ -167,7 +167,7 @@ namespace UtiliExtract.Helpers
                 if (tm.Success &&
                     decimal.TryParse(tm.Groups[1].Value, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var total))
                 {
-                    data.AmountDue = total;
+                    data.Cost = total;
                 }
             }
             // ── WATER TREATMENT AND SUPPLY SECTION ────────────────────────────────────
@@ -181,7 +181,7 @@ namespace UtiliExtract.Helpers
                 {
                     var raw = uw.Groups[1].Value.Replace(",", "");
                     if (double.TryParse(raw, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var usage))
-                        data.Usage = usage;
+                        data.Consumption = usage;
                 }
 
                 // 2) AmountDue (Summary $323.93)
@@ -189,7 +189,7 @@ namespace UtiliExtract.Helpers
                 if (wm.Success &&
                     decimal.TryParse(wm.Groups[1].Value, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var total))
                 {
-                    data.AmountDue = total;
+                    data.Cost = total;
                 }
             }
             else
