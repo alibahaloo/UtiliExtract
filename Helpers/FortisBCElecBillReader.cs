@@ -16,7 +16,7 @@ namespace UtiliExtract.Helpers
                 Name = TryExtractName(fullText),
                 ServiceAddress = TryExtractServiceAddress(fullText),
                 BillingDate = TryExtractBillingDate(fullText),
-                Cost = TryExtractAmountDue(fullText),
+                Charges = TryExtractAmountDue(fullText),
                 Consumption = TryExtractUsage(fullText),
             };
             (data.DurationStart, data.DurationEnd) = TryExtractBillingPeriod(fullText);
@@ -89,11 +89,15 @@ namespace UtiliExtract.Helpers
 
         private static decimal TryExtractAmountDue(string text)
         {
-            // Pattern: "Amount due: $1,045.02"
-            var pattern = @"Amount due[:\s]*\$([0-9,]+\.?[0-9]{0,2})";
-            var match = Regex.Match(text, pattern, RegexOptions.IgnoreCase);
-            return match.Success ? TryConvertCurrency(match.Groups[1].Value) : 0m;
+            // Pattern: "Total electricity charges $995.26"
+            // Using Multiline so ^ anchors to the start of any line
+            var pattern = @"^Total\s+electricity\s+charges\s*\$([0-9,]+(?:\.[0-9]{1,2})?)";
+            var match = Regex.Match(text, pattern, RegexOptions.IgnoreCase | RegexOptions.Multiline);
+            return match.Success
+                ? TryConvertCurrency(match.Groups[1].Value)
+                : 0m;
         }
+
 
         private static double TryExtractUsage(string text)
         {

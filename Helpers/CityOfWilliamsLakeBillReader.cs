@@ -52,7 +52,7 @@ namespace UtiliExtract.Helpers
                 AccountNumber = ExtractAccountNumber(fullText),
                 BillingDate = ExtractBillingDate(fullText),
                 Consumption = ExtractConsumption(fullText),
-                Cost = ExtractAmountDue(fullText)
+                Charges = ExtractAmountDue(fullText)
             };
 
             (data.DurationStart, data.DurationEnd) = ExtractDuration(fullText);

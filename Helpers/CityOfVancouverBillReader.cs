@@ -62,7 +62,7 @@ namespace UtiliExtract.Helpers
                 Name = ExtractName(fullText),
                 ServiceAddress = ExtractServiceAddress(fullText),
                 Consumption = ExtractConsumption(fullText),
-                Cost = ExtractAmountDue(fullText)
+                Charges = ExtractAmountDue(fullText)
             };
 
             (data.DurationStart, data.DurationEnd) = ExtractDuration(fullText);

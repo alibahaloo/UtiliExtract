@@ -167,7 +167,7 @@ namespace UtiliExtract.Helpers
                 if (tm.Success &&
                     decimal.TryParse(tm.Groups[1].Value, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var total))
                 {
-                    data.Cost = total;
+                    data.Charges = total;
                 }
             }
             // ── WATER TREATMENT AND SUPPLY SECTION ────────────────────────────────────
@@ -189,7 +189,7 @@ namespace UtiliExtract.Helpers
                 if (wm.Success &&
                     decimal.TryParse(wm.Groups[1].Value, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var total))
                 {
-                    data.Cost = total;
+                    data.Charges = total;
                 }
             }
             else

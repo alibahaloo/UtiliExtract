@@ -17,7 +17,7 @@ namespace UtiliExtract.Models
         public DateTime? DurationStart { get; set; }
         [RequiredWithContext(ErrorMessage = "Period end is required")]
         public DateTime? DurationEnd { get; set; }
-        public decimal? Cost { get; set; }
+        public decimal? Charges { get; set; }
         [RequiredWithContext(ErrorMessage = "Consumption is required")]
         public double? Consumption { get; set; }
         public bool IsMetered { get; set; } = true;

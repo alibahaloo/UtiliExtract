@@ -246,7 +246,7 @@ namespace UtiliExtract.Helpers
                 DurationStart = durationStart,
                 DurationEnd = durationEnd,
                 Consumption = usage,
-                Cost = charges,
+                Charges = charges,
                 IsMetered = isMetered,
                 UsageType = usageType,
                 UsageUnit = BillMetadata.GetUsageUnit(usageType),

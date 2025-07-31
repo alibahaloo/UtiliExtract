@@ -55,7 +55,7 @@ namespace UtiliExtract.Helpers
                 IsMetered = true,
                 UsageType = usageType,
                 UsageUnit = BillMetadata.GetUsageUnit(usageType),
-                Cost = ExtractDueAmount(fullText),
+                Charges = ExtractDueAmount(fullText),
             };
 
             // Find the data line immediately after the header
