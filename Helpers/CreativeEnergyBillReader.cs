@@ -38,8 +38,8 @@ namespace UtiliExtract.Helpers
         );
 
         // Total Due
-        private static readonly Regex DueAmountPattern = new Regex(
-            @"Total\s+Due\s*\$\s*([\d,]+\.\d{2})",
+        private static readonly Regex TotalChargesPattern = new Regex(
+            @"Total\s+Charges\s*\$\s*([\d,]+\.\d{2})",
             RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant,
             RegexTimeout
         );
@@ -55,7 +55,7 @@ namespace UtiliExtract.Helpers
                 IsMetered = true,
                 UsageType = usageType,
                 UsageUnit = BillMetadata.GetUsageUnit(usageType),
-                Charges = ExtractDueAmount(fullText),
+                Charges = ExtractTotalCharges(fullText),
             };
 
             // Find the data line immediately after the header
@@ -102,12 +102,12 @@ namespace UtiliExtract.Helpers
             return data;
         }
 
-        private static decimal? ExtractDueAmount(string text)
+        private static decimal? ExtractTotalCharges(string text)
         {
-            var line = GetLineContaining(text, "Total Due $");
+            var line = GetLineContaining(text, "Total Charges $");
             if (line != null)
             {
-                var m = DueAmountPattern.Match(line);
+                var m = TotalChargesPattern.Match(line);
                 if (m.Success &&
                     decimal.TryParse(
                         m.Groups[1].Value.Replace(",", ""),
