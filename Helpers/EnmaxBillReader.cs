@@ -69,6 +69,20 @@ namespace UtiliExtract.Helpers
             RegexTimeout
         );
 
+        // ── WATER CHARGES PATTERNS ───────────────────────────────────────────────
+        private static readonly Regex WaterTreatmentChargePattern = new Regex(
+            @"Water Treatment and Supply[^\$]*\$\s*(\d+\.\d{2})",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant,
+            RegexTimeout
+        );
+
+        private static readonly Regex WastewaterChargePattern = new Regex(
+            @"Wastewater Collection and Treatment[^\$]*\$\s*(\d+\.\d{2})",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant,
+            RegexTimeout
+        );
+
+
         public string FullText { get; }
         public string AccountNumber { get; }
         public DateTime? BillingDate { get; }
@@ -174,7 +188,7 @@ namespace UtiliExtract.Helpers
             else if (section.StartsWith("WATER TREATMENT AND SUPPLY"))
             {
                 usageType = UsageType.Water;
- 
+
                 // 1) Usage (e.g. “115.000 m3 @”)
                 var uw = WaterUsagePattern.Match(section);
                 if (uw.Success)
@@ -184,13 +198,24 @@ namespace UtiliExtract.Helpers
                         data.Consumption = usage;
                 }
 
-                // 2) AmountDue (Summary $323.93)
-                var wm = SectionTotalPattern.Match(section);
-                if (wm.Success &&
-                    decimal.TryParse(wm.Groups[1].Value, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var total))
+                // 2) AmountDue = Water Treatment + Wastewater
+                decimal waterTotal = 0m;
+
+                var wtsMatch = WaterTreatmentChargePattern.Match(FullText);
+                if (wtsMatch.Success &&
+                    decimal.TryParse(wtsMatch.Groups[1].Value, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var wtsVal))
                 {
-                    data.Charges = total;
+                    waterTotal += wtsVal;
                 }
+
+                var wwtMatch = WastewaterChargePattern.Match(FullText);
+                if (wwtMatch.Success &&
+                    decimal.TryParse(wwtMatch.Groups[1].Value, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var wwtVal))
+                {
+                    waterTotal += wwtVal;
+                }
+
+                data.Charges = waterTotal;
             }
             else
             {
