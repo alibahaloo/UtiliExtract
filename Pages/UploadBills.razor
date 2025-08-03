@@ -127,6 +127,33 @@
                     </div>
                     <div id="collapse_@index" class="accordion-collapse collapse show" data-bs-parent="#validBillsAccordion">
                         <div class="accordion-body border border-1">
+
+                            <div class="row">
+                                <div class="col text-center">
+                                    <a class="btn btn-outline-primary m-1 d-inline-block"
+                                       data-bs-toggle="collapse"
+                                       href="#collapsePreviewBill"
+                                       role="button"
+                                       aria-expanded="false"
+                                       aria-controls="collapsePreviewBill"
+                                       @onclick="@(() => TogglePreview(bill))">
+                                        <i class=@(bill.ShowPreview ? "bi bi-toggle-on" : "bi bi-toggle-off")></i>
+                                        @(bill.ShowPreview ? "Hide PDF Preview" : "Show PDF Preview")
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="row justify-content-center">
+                                <div class="col-12">
+                                    <div id="collapsePreviewBill"
+                                         class="collapse">
+                                        <iframe src="@bill.PreviewUrl"
+                                                style="width: 100%; height: 800px; border: none;">
+                                        </iframe>
+                                    </div>
+                                </div>
+                            </div>
+
+
                             <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
                                 @foreach (var item in bill.BillData)
                                 {
@@ -240,6 +267,16 @@
     void OnDrop(DragEventArgs _)
       => HoverClass = string.Empty;
 
+    private void TogglePreview(Bill bill)
+    {
+        bill.ShowPreview = !bill.ShowPreview;
+    }
+
+    private async Task RerenderThenDelay()
+    {
+        StateHasChanged();
+        await Task.Delay(1);
+    }
 
     protected override void OnInitialized()
     {
@@ -404,8 +441,7 @@
         IsProcessing = true;
 
         ProcessingMessage = "Reading file(s) ...";
-        StateHasChanged();
-        await Task.Delay(1);
+        await RerenderThenDelay();
 
         const long maxSize = 10 * 1024 * 1024; // 10 MB
         foreach (var file in e.GetMultipleFiles())
@@ -422,17 +458,23 @@
             using var ms = new MemoryStream((int)file.Size);
             await browserStream.CopyToAsync(ms);
 
+            var contentBytes = ms.ToArray();
+            var previewBase64 = Convert.ToBase64String(contentBytes);
+
             // 2. Store the raw bytes and filename
             ValidBills.Add(new Bill
             {
                 FileName = file.Name,
-                Content = ms.ToArray()
+                Content = ms.ToArray(),
+                PreviewUrl = $"data:application/pdf;base64,{previewBase64}"
             });
         }
 
         fileInputKey = Guid.NewGuid().ToString();
 
         ProcessingMessage = "Processing bill(s) ...";
+        await RerenderThenDelay();
+
         await ProcessBills();
 
         IsProcessing = false;
@@ -459,15 +501,12 @@
     private async Task ProcessBills()
     {
         ProgressPercent = 0;
-        // Initial render
-        StateHasChanged();
-        await Task.Delay(1);
 
         int totalBills = ValidBills.Count;
         if (totalBills == 0)
         {
             ProgressPercent = 100;
-            StateHasChanged();
+            await RerenderThenDelay();
             return;
         }
 
@@ -495,8 +534,7 @@
                             CityOfWilliamsLakeBillReader.GetInvoiceData(fullText)
                         };
                         ProgressPercent = (int)Math.Round((i + 1) * outerWeight);
-                        StateHasChanged();
-                        await Task.Delay(1);
+                        await RerenderThenDelay();
                         break;
                     case BillProvider.CityOfVancouver:
                         bill.BillData = new List<BillData>
@@ -504,8 +542,7 @@
                             CityOfVancouverBillReader.GetInvoiceData(fullText)
                         };
                         ProgressPercent = (int)Math.Round((i + 1) * outerWeight);
-                        StateHasChanged();
-                        await Task.Delay(1);
+                        await RerenderThenDelay();
                         break;
                     case BillProvider.CreativeEnergy:
                         bill.BillData = new List<BillData>
@@ -513,8 +550,7 @@
                             CreativeEnergyBillReader.GetInvoiceData(fullText)
                         };
                         ProgressPercent = (int)Math.Round((i + 1) * outerWeight);
-                        StateHasChanged();
-                        await Task.Delay(1);
+                        await RerenderThenDelay();
                         break;
                     case BillProvider.Enmax:
                         var enmaxBill = new EnmaxBillReader(fullText);
@@ -533,8 +569,7 @@
                             ProgressPercent = (int)Math.Round(
                                 (i + (j + 1) / (double)enmaxSectionCount) * outerWeight
                             );
-                            StateHasChanged();
-                            await Task.Delay(1);
+                            await RerenderThenDelay();
                         }
                         break;
                     case BillProvider.FortisBCElec:
@@ -544,8 +579,7 @@
                         };
                         // one step completes the whole bill
                         ProgressPercent = (int)Math.Round((i + 1) * outerWeight);
-                        StateHasChanged();
-                        await Task.Delay(1);
+                        await RerenderThenDelay();
                         break;
 
                     case BillProvider.DirectEnergy:
@@ -554,8 +588,7 @@
                             DirectEnergyBillReader.GetInvoiceData(fullText)
                         };
                         ProgressPercent = (int)Math.Round((i + 1) * outerWeight);
-                        StateHasChanged();
-                        await Task.Delay(1);
+                        await RerenderThenDelay();
                         break;
 
                     case BillProvider.BCHydro:
@@ -574,8 +607,7 @@
                             // update after each section:
                             // (i + (j+1)/sectionCount) * outerWeight gives fractional progress within this bill
                             ProgressPercent = (int)Math.Round((i + (j + 1) / (double)sectionCount) * outerWeight);
-                            StateHasChanged();
-                            await Task.Delay(1);
+                            await RerenderThenDelay();
                         }
                         break;
                 }
@@ -585,14 +617,13 @@
                 ErrorInProcessing = $"Error processing {bill.FileName}: {ex.Message}";
                 // still bump the bar so it never stalls completely
                 ProgressPercent = (int)Math.Round((i + 1) * outerWeight);
-                StateHasChanged();
-                await Task.Delay(1);
+                await RerenderThenDelay();
             }
         }
 
         // ensure we finish at 100%
         ProgressPercent = 100;
-        StateHasChanged();
+        await RerenderThenDelay();
     }
 
 
