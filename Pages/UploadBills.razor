@@ -132,10 +132,10 @@
                                 <div class="col text-center">
                                     <a class="btn btn-outline-primary m-1 d-inline-block"
                                        data-bs-toggle="collapse"
-                                       href="#collapsePreviewBill"
+                                       href="#collapsePreviewBill_@index"
                                        role="button"
                                        aria-expanded="false"
-                                       aria-controls="collapsePreviewBill"
+                                       aria-controls="collapsePreviewBill_@index"
                                        @onclick="@(() => TogglePreview(bill))">
                                         <i class=@(bill.ShowPreview ? "bi bi-toggle-on" : "bi bi-toggle-off")></i>
                                         @(bill.ShowPreview ? "Hide PDF Preview" : "Show PDF Preview")
@@ -144,7 +144,7 @@
                             </div>
                             <div class="row justify-content-center">
                                 <div class="col-12">
-                                    <div id="collapsePreviewBill"
+                                    <div id="collapsePreviewBill_@index"
                                          class="collapse">
                                         <iframe src="@bill.PreviewUrl"
                                                 style="width: 100%; height: 800px; border: none;">
