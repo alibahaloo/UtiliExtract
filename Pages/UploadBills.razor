@@ -130,29 +130,11 @@
 
                             <div class="row">
                                 <div class="col text-center">
-                                    <a class="btn btn-outline-primary m-1 d-inline-block"
-                                       data-bs-toggle="collapse"
-                                       href="#collapsePreviewBill_@index"
-                                       role="button"
-                                       aria-expanded="false"
-                                       aria-controls="collapsePreviewBill_@index"
-                                       @onclick="@(() => TogglePreview(bill))">
-                                        <i class=@(bill.ShowPreview ? "bi bi-toggle-on" : "bi bi-toggle-off")></i>
-                                        @(bill.ShowPreview ? "Hide PDF Preview" : "Show PDF Preview")
-                                    </a>
+                                    <Button Color="ButtonColor.Primary" @onclick="() => OnShowModalClick(bill.PreviewUrl)">
+                                        <i class="bi bi-eye me-1"></i>Show Original Bill
+                                    </Button>
                                 </div>
                             </div>
-                            <div class="row justify-content-center">
-                                <div class="col-12">
-                                    <div id="collapsePreviewBill_@index"
-                                         class="collapse">
-                                        <iframe src="@bill.PreviewUrl"
-                                                style="width: 100%; height: 800px; border: none;">
-                                        </iframe>
-                                    </div>
-                                </div>
-                            </div>
-
 
                             <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
                                 @foreach (var item in bill.BillData)
@@ -234,12 +216,37 @@
     }
 }
 
+<Modal @ref="modal" Title="Bill Preview" Size="ModalSize.ExtraLarge">
+    <BodyTemplate>
+        <iframe src="@modalBody"
+                style="width: 100%; height: 800px; border: none;">
+        </iframe>
+    </BodyTemplate>
+    <FooterTemplate>
+        <Button Color="ButtonColor.Secondary" @onclick="OnHideModalClick">Close</Button>
+    </FooterTemplate>
+</Modal>
+
 @if (!string.IsNullOrEmpty(ErrorInProcessing))
 {
     <div class="alert alert-danger">@ErrorInProcessing</div>
 }
 
 @code {
+    private Modal modal = default!;
+    private string modalBody = string.Empty;
+
+    private async Task OnShowModalClick(string previewURL)
+    {
+        modalBody = previewURL;
+        await modal.ShowAsync();
+    }
+
+    private async Task OnHideModalClick()
+    {
+        await modal.HideAsync();
+    }
+
     private string fileInputKey = Guid.NewGuid().ToString();
     private ValidationMessageStore messageStore = default!;
     private EditContext editContext = default!;
@@ -266,11 +273,6 @@
     // this runs whenever you actually drop the file
     void OnDrop(DragEventArgs _)
       => HoverClass = string.Empty;
-
-    private void TogglePreview(Bill bill)
-    {
-        bill.ShowPreview = !bill.ShowPreview;
-    }
 
     private async Task RerenderThenDelay()
     {
@@ -432,6 +434,9 @@
 
     private async Task HandleFileSelected(InputFileChangeEventArgs e)
     {
+        ProcessingMessage = "Reading file(s) ...";
+        await RerenderThenDelay();
+
         HoverClass = string.Empty;
         InvalidFiles.Clear();
         ValidBills.Clear();
@@ -440,7 +445,6 @@
         ProcessingDone = false;
         IsProcessing = true;
 
-        ProcessingMessage = "Reading file(s) ...";
         await RerenderThenDelay();
 
         const long maxSize = 10 * 1024 * 1024; // 10 MB
