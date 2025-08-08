@@ -138,15 +138,17 @@ namespace UtiliExtract.Helpers
 
         private static decimal ExtractAmountDue(string text)
         {
-            var line = GetLineAfter(text, "AMOUNT DUE IF PAID BY");
+            var line = GetLineContaining(text, "TOTAL CURRENT");
             if (line != null)
             {
+                // Pattern: "TOTAL CURRENT 141.80"
                 var m = AmountDuePattern.Match(line);
                 if (m.Success && decimal.TryParse(m.Groups[1].Value, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var d))
                     return d;
             }
             return 0m;
         }
+
 
         private static string? GetLineContaining(string text, string anchor)
         {
