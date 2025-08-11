@@ -58,9 +58,8 @@ Adding support for additional bill types or providers is straightforward:
 ### Modify `BillMetadata.cs`
 
 * Add new entries to the `BillProvider` enum
-* Extend `ProviderUsageTypeMap` to include usage types for the new provider
-* Map usage types to measurement units in `UsageTypeToUnitMap`
 * Add provider-specific keywords to `BillTypeKeywords` to assist in detection
+* Add new usage unit to the `UsageUnit` enum if necessary
 
 ### Add a New Bill Reader
 

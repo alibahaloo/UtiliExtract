@@ -9,6 +9,7 @@
         kWh,
         GJ,
         m3,
+        CCF,
         LBS
     }
 
@@ -42,30 +43,6 @@
     }
     public static class BillMetadata
     {
-        public static readonly Dictionary<BillProvider, List<UsageType>> ProviderUsageTypeMap = new()
-        {
-            { BillProvider.Enmax, new List<UsageType> { UsageType.Electricity, UsageType.Gas, UsageType.Water } },
-            { BillProvider.BCHydro, new List<UsageType> { UsageType.Electricity } },
-            { BillProvider.FortisBCElec, new List<UsageType> { UsageType.Electricity } },
-            { BillProvider.DirectEnergy, new List<UsageType> { UsageType.Gas } },
-            { BillProvider.CreativeEnergy, new List<UsageType>() { UsageType.Steam } },
-            { BillProvider.CityOfVancouver, new List<UsageType>() {UsageType.Water } },
-            { BillProvider.CityOfWilliamsLake, new List<UsageType>() {UsageType.Water } },
-        };
-
-        /// <summary>
-        /// Maps each <see cref="UsageType"/> to its corresponding <see cref="UsageUnit"/>.
-        /// This is used to determine the correct unit of measurement (e.g., kWh, GJ)
-        /// for a given type of utility usage when processing or displaying bill data.
-        /// </summary>
-        public static readonly Dictionary<UsageType, UsageUnit> UsageTypeToUnitMap = new()
-        {
-            { UsageType.Electricity, UsageUnit.kWh },
-            { UsageType.Gas, UsageUnit.GJ },
-            { UsageType.Water, UsageUnit.m3 },
-            { UsageType.Steam, UsageUnit.LBS },
-        };
-
         /// <summary>
         /// Maps each <see cref="UsageType"/> to its corresponding Bootstrap icon class.
         /// This is used to visually represent the type of utility (e.g., electricity, gas)
@@ -99,32 +76,10 @@
             // Add more mappings here as needed
         };
 
-        public static UsageUnit GetUsageUnit(UsageType usageType)
-        {
-            return UsageTypeToUnitMap.TryGetValue(usageType, out var unit)
-                ? unit
-                : throw new ArgumentOutOfRangeException(nameof(usageType), $"No unit mapping for {usageType}");
-        }
-
         public static string GetIconClass(UsageType usageType)
         {
             return UsageTypeToIconMap.TryGetValue(usageType, out var icon) ? icon : "bi bi-question-circle";
         }
 
-        public static Dictionary<UsageType, UsageUnit> GetDefaultUsageTypes(BillProvider provider)
-        {
-            var result = new Dictionary<UsageType, UsageUnit>();
-            if (ProviderUsageTypeMap.TryGetValue(provider, out var types))
-            {
-                foreach (var type in types)
-                {
-                    if (UsageTypeToUnitMap.TryGetValue(type, out var unit))
-                    {
-                        result[type] = unit;
-                    }
-                }
-            }
-            return result;
-        }
     }
 }

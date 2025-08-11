@@ -54,7 +54,7 @@ namespace UtiliExtract.Helpers
                 AccountNumber = ExtractAccountNumber(fullText),
                 IsMetered = true,
                 UsageType = usageType,
-                UsageUnit = BillMetadata.GetUsageUnit(usageType),
+                UsageUnit = UsageUnit.LBS,
                 Charges = ExtractTotalCharges(fullText),
             };
 

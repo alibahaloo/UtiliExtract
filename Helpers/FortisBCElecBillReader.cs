@@ -11,7 +11,7 @@ namespace UtiliExtract.Helpers
             {
                 IsMetered = true,
                 UsageType = usageType,
-                UsageUnit = BillMetadata.GetUsageUnit(usageType),
+                UsageUnit = UsageUnit.kWh,
                 AccountNumber = TryExtractAccountNumber(fullText),
                 Name = TryExtractName(fullText),
                 ServiceAddress = TryExtractServiceAddress(fullText),

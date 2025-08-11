@@ -56,7 +56,7 @@ namespace UtiliExtract.Helpers
             {
                 IsMetered = true,
                 UsageType = usageType,
-                UsageUnit = BillMetadata.GetUsageUnit(usageType),
+                UsageUnit = UsageUnit.m3,
                 AccountNumber = ExtractAccountNumber(fullText),
                 BillingDate = ExtractBillingDate(fullText),
                 Name = ExtractName(fullText),

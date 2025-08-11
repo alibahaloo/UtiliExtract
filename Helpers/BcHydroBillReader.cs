@@ -249,7 +249,7 @@ namespace UtiliExtract.Helpers
                 Charges = charges,
                 IsMetered = isMetered,
                 UsageType = usageType,
-                UsageUnit = BillMetadata.GetUsageUnit(usageType),
+                UsageUnit = UsageUnit.kWh
             };
         }
 
