@@ -11,7 +11,7 @@ namespace UtiliExtract.Helpers
         // ---- Public API ------------------------------------------------------
 
         /// <summary>
-        /// Export CSVs grouped by BillProvider and trigger downloads via JS interop.
+        /// Export CSVs grouped by Usage Type and trigger downloads via JS interop.
         /// </summary>
         public async Task ExportByProviderAsync(IEnumerable<BillDto> records, IJSRuntime js, string? filePrefix = null)
         {
@@ -19,7 +19,7 @@ namespace UtiliExtract.Helpers
 
             var groups = records
                 .Where(r => r is not null)
-                .GroupBy(r => r.BillProvider);
+                .GroupBy(r => r.UsageType);
 
             foreach (var g in groups)
             {
@@ -77,9 +77,8 @@ namespace UtiliExtract.Helpers
             return sb.ToString();
         }
 
-        private static string BuildFileName(BillProvider provider, string? prefix)
+        private static string BuildFileName(string? slug, string? prefix)
         {
-            var slug = provider.ToString();
             var ts = DateTime.UtcNow.ToString("yyyyMMdd_HHmmss", CultureInfo.InvariantCulture);
             return string.IsNullOrWhiteSpace(prefix)
                 ? $"{slug}_{ts}.csv"

@@ -67,7 +67,7 @@
 <div class="row mt-1">
     <div class="col">
         <span class="fw-bold">
-            Uploaded Bills:
+            Uploaded File(s):
         </span>
         <ul class="list-group">
             @foreach (var file in InvalidFiles)
@@ -107,7 +107,8 @@
                   OnValidSubmit="HandleValidSubmit">
             <div class="row mb-2">
                 <div class="col">
-                    <button type="submit" class="btn btn-primary">Submit</button>
+                    <button type="submit" class="btn btn-primary">Download CSV</button>
+                    <em class="small">This will group all bills by Fuel Type and download them as CSV file(s)</em>
                 </div>
             </div>
             @if (editContext.GetValidationMessages().Any())
