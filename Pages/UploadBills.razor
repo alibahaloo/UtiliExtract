@@ -532,6 +532,14 @@
                 // --- branch by provider ---
                 switch (bill.BillProvider)
                 {
+                    case BillProvider.CityOfKelowna:
+                        bill.BillData = new List<BillData>
+                        {
+                            CityOfKelownaBillReader.GetInvoiceData(fullText)
+                        };
+                        ProgressPercent = (int)Math.Round((i + 1) * outerWeight);
+                        await RerenderThenDelay();
+                        break;
                     case BillProvider.CityOfWilliamsLake:
                         bill.BillData = new List<BillData>
                         {

@@ -39,7 +39,8 @@
         Enmax,
         CreativeEnergy,
         CityOfVancouver,
-        CityOfWilliamsLake
+        CityOfWilliamsLake,
+        CityOfKelowna,
     }
     public static class BillMetadata
     {
@@ -73,6 +74,7 @@
             { BillProvider.CreativeEnergy, new List<string> { "Creativeenergycanada.com" } },
             { BillProvider.CityOfVancouver, new List<string> { "vancouver.ca/utilitybilling" } },
             { BillProvider.CityOfWilliamsLake, new List<string> { "www.williamslake.ca" } },
+            { BillProvider.CityOfKelowna, new List<string> { "kelowna.ca/utilities" } },
             // Add more mappings here as needed
         };
 
