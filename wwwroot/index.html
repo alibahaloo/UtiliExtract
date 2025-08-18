@@ -53,6 +53,18 @@
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
         };
+
+        window.util = {
+            createObjectURL: (bytes, mime) => {
+                // bytes is a .NET byte[] (marshaled as an array of numbers)
+                const view = new Uint8Array(bytes);
+                const blob = new Blob([view], { type: mime || 'application/pdf' });
+                return URL.createObjectURL(blob);
+            },
+            revokeObjectURL: (url) => {
+                try { URL.revokeObjectURL(url); } catch { }
+            }
+        };
     </script>
 
 </body>

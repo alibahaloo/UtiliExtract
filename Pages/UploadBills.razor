@@ -244,6 +244,9 @@
 
     private async Task OnHideModalClick()
     {
+        if (!string.IsNullOrWhiteSpace(modalBody))
+            await JS.InvokeVoidAsync("util.revokeObjectURL", modalBody);
+
         await modal.HideAsync();
     }
 
@@ -447,7 +450,7 @@
 
         await RerenderThenDelay();
 
-        const long maxSize = 10 * 1024 * 1024; // 10 MB
+        const long maxSize = 10 * 1024 * 1024; // 10 MB; increase if needed
         foreach (var file in e.GetMultipleFiles())
         {
             if (!file.Name.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
@@ -456,21 +459,22 @@
                 continue;
             }
 
-            // 1. Read immediately into a MemoryStream
             using var browserStream = file.OpenReadStream(maxSize);
-            //using var ms = new MemoryStream();
             using var ms = new MemoryStream((int)file.Size);
             await browserStream.CopyToAsync(ms);
-
             var contentBytes = ms.ToArray();
-            var previewBase64 = Convert.ToBase64String(contentBytes);
 
-            // 2. Store the raw bytes and filename
+            // Create a blob URL instead of a giant data: URL
+            var blobUrl = await JS.InvokeAsync<string>(
+                "util.createObjectURL",
+                contentBytes,
+                "application/pdf");
+
             ValidBills.Add(new Bill
             {
                 FileName = file.Name,
-                Content = ms.ToArray(),
-                PreviewUrl = $"data:application/pdf;base64,{previewBase64}"
+                Content = contentBytes,      // keep if you need content later
+                PreviewUrl = blobUrl         // use this in your iframe/object
             });
         }
 
@@ -483,7 +487,7 @@
 
         IsProcessing = false;
         ProcessingDone = true;
-        StateHasChanged();
+        await RerenderThenDelay();
     }
 
     private void RemoveBillData(Bill bill, BillData billData)
